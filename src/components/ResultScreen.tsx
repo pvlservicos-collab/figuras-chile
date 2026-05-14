@@ -83,10 +83,10 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
             className="text-2xl font-bold text-copa-blue mb-2"
             style={{ fontFamily: "var(--font-titulo)" }}
           >
-            ERRO DE CONEXÃO
+            ERREUR DE CONNEXION
           </h2>
           <p className="text-base text-gray-600 mb-6" style={{ fontFamily: "var(--font-papernotes)" }}>
-            Verifique sua conexão e clique no botão abaixo.
+            Vérifiez votre connexion et appuyez sur le bouton ci-dessous.
           </p>
           <button
             onClick={onRetry}
@@ -94,7 +94,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
               shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em]"
             style={{ fontFamily: "var(--font-titulo)" }}
           >
-            TENTAR NOVAMENTE
+            RÉESSAYER
           </button>
         </div>
       ) : (
@@ -142,7 +142,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
             className="text-6xl md:text-8xl font-bold text-copa-blue text-center tracking-[0.1em] mb-1"
             style={{ fontFamily: "var(--font-titulo)" }}
           >
-            GOOLL!
+            BUUUT !
           </h1>
 
           {/* Subtítulo */}
@@ -150,7 +150,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
             className="text-lg md:text-xl text-copa-blue text-center font-bold mb-2"
             style={{ fontFamily: "var(--font-papernotes)" }}
           >
-            Sua figurinha está pronta!
+            Votre vignette est prête !
           </p>
 
           {/* Descrição */}
@@ -158,7 +158,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
             className="text-base text-gray-600 text-center mb-6"
             style={{ fontFamily: "var(--font-papernotes)" }}
           >
-            Receba o arquivo <strong>DIGITAL</strong> para a <strong>IMPRESSÃO</strong>
+            Recevez le fichier <strong>NUMÉRIQUE</strong> prêt pour l&apos;<strong>IMPRESSION</strong>
           </p>
 
           {/* Preço centralizado com brilho */}
@@ -176,7 +176,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
               shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.15em]"
             style={{ fontFamily: "var(--font-titulo)" }}
           >
-            RECEBER MINHA FIGURINHA
+            RECEVOIR MA VIGNETTE
           </button>
         </div>
       )}

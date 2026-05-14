@@ -13,8 +13,8 @@ export default function Hero({ onStart }: HeroProps) {
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-4 max-w-2xl"
         style={{ fontFamily: "var(--font-titulo)" }}
       >
-        Transforme seu filho em uma{" "}
-        <span className="text-copa-yellow">figurinha personalizada</span> da Copa do Mundo
+        Transformez votre enfant en{" "}
+        <span className="text-copa-yellow">vignette Panini personnalisée</span> de la Coupe du Monde
       </h1>
 
       <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-[400px] mb-2">
@@ -82,8 +82,8 @@ export default function Hero({ onStart }: HeroProps) {
         className="text-lg md:text-xl max-w-md mb-4 leading-relaxed"
         style={{ fontFamily: "var(--font-papernotes)" }}
       >
-        Responda algumas perguntas rápidas e veja como criar uma figurinha exclusiva,
-        com o nome, foto e estilo do seu pequeno craque.
+        Répondez à quelques questions et créez une vignette unique avec le nom,
+        la photo et le style de votre petit champion.
       </p>
 
       <button
@@ -93,22 +93,31 @@ export default function Hero({ onStart }: HeroProps) {
           animate-pulse-glow cursor-pointer tracking-[0.15em]"
         style={{ fontFamily: "var(--font-titulo)" }}
       >
-        INICIAR
+        COMMENCER
       </button>
 
       <div className="mt-6 flex flex-col items-center gap-2">
-        <div className="flex -space-x-2">
-          {["🇧🇷", "🇦🇷", "🇫🇷", "🇩🇪", "🇪🇸"].map((flag, i) => (
-            <span
-              key={i}
-              className="w-10 h-10 rounded-full bg-copa-white flex items-center justify-center text-xl border-2 border-copa-yellow"
-            >
-              {flag}
-            </span>
+        <div className="flex items-center gap-1">
+          {[
+            { code: "fr", label: "França", big: true },
+            { code: "br", label: "Brasil", big: false },
+            { code: "ar", label: "Argentina", big: false },
+            { code: "de", label: "Alemanha", big: false },
+            { code: "es", label: "Espanha", big: false },
+          ].map(({ code, label, big }) => (
+            <img
+              key={code}
+              src={`https://flagcdn.com/w${big ? "80" : "40"}/${code}.png`}
+              alt={label}
+              width={big ? 44 : 32}
+              height={big ? 30 : 21}
+              className={`rounded shadow-md border border-gray-200 ${big ? "ring-2 ring-copa-blue" : "opacity-80"}`}
+              style={{ transition: "transform 0.2s" }}
+            />
           ))}
         </div>
         <p className="text-sm font-bold" style={{ fontFamily: "var(--font-papernotes)" }}>
-          +2.500 figurinhas já criadas!
+          +2 500 vignettes déjà créées !
         </p>
       </div>
     </section>

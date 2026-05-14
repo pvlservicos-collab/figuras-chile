@@ -10,7 +10,7 @@ function PreviewContent() {
   const stickerId = params.get("id") || "";
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-copa-yellow px-4 py-8">
+    <main className="flex flex-col items-center justify-center min-h-screen bg-white px-4 py-8">
       <div className="w-full max-w-sm flex flex-col items-center animate-slide-up">
         {stickerUrl && (
           <div
@@ -108,7 +108,7 @@ function PreviewContent() {
 export default function PreviewPage() {
   return (
     <Suspense fallback={
-      <main className="flex items-center justify-center min-h-screen bg-copa-yellow">
+      <main className="flex items-center justify-center min-h-screen bg-white">
         <p style={{ fontFamily: "var(--font-papernotes)" }}>Carregando...</p>
       </main>
     }>

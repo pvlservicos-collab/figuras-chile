@@ -10,24 +10,24 @@ interface LoadingScreenProps {
 }
 
 const curiosidades = [
-  "A Copa de 2026 será a primeira com 48 seleções! Vai ser histórico!",
-  "O Brasil é o maior campeão mundial com 5 títulos. Rumo ao hexa!",
-  "Pelé marcou 1.283 gols na carreira. O Rei do Futebol!",
-  "A primeira Copa do Mundo foi em 1930, no Uruguai.",
-  "O recorde de gols em uma Copa é de Just Fontaine: 13 gols em 1958.",
-  "Ronaldo Fenômeno é o segundo maior artilheiro de Copas com 15 gols.",
-  "O Maracanã já recebeu quase 200 mil pessoas em um único jogo!",
-  "A Copa de 2026 será sediada nos EUA, México e Canadá.",
-  "O gol mais rápido da história das Copas foi marcado em 10,8 segundos!",
-  "Cafu é o único jogador que disputou 3 finais consecutivas de Copa.",
-  "Miroslav Klose é o maior artilheiro da história das Copas com 16 gols.",
-  "O Brasil é a única seleção que participou de todas as edições da Copa.",
-  "A camisa amarela da seleção brasileira foi adotada após a derrota de 1950.",
-  "Zagallo foi campeão como jogador (1958 e 1962) e como técnico (1970).",
-  "A bola oficial da Copa de 2026 se chama 'adidas Finale 26'.",
-  "Neymar é o segundo maior artilheiro da história da seleção brasileira.",
-  "Djalma Santos foi eleito o melhor lateral-direito de todos os tempos pela FIFA.",
-  "O estádio Azteca, no México, é o único que sediou duas finais de Copa.",
+  "La Coupe du Monde 2026 sera la première à réunir 48 équipes ! Du jamais vu dans l'histoire du foot !",
+  "La France a remporté 2 Coupes du Monde : en 1998 à domicile et en 2018 en Russie. Les Bleus visent le triplé !",
+  "Kylian Mbappé est devenu champion du monde à seulement 19 ans. Un talent hors norme !",
+  "La première Coupe du Monde a eu lieu en 1930, en Uruguay. La France y participait déjà !",
+  "Le record de buts en une Coupe du Monde ? Just Fontaine avec 13 buts en 1958 — et il jouait pour la France !",
+  "Zinédine Zidane a été élu meilleur joueur du monde 3 fois de suite. Une légende absolue.",
+  "Le Stade de France peut accueillir plus de 80 000 spectateurs. Une cathédrale du football.",
+  "La Coupe du Monde 2026 se déroulera aux États-Unis, au Mexique et au Canada.",
+  "Le but le plus rapide de l'histoire de la Coupe du Monde a été inscrit en seulement 10,8 secondes !",
+  "Didier Deschamps est l'un des rares à avoir été champion du monde en tant que joueur ET en tant qu'entraîneur.",
+  "Miroslav Klose est le meilleur buteur de l'histoire de la Coupe du Monde avec 16 buts.",
+  "Le Brésil est la seule équipe à avoir participé à toutes les éditions de la Coupe du Monde.",
+  "En 1998, la France a battu le Brésil 3-0 en finale. Zidane a marqué deux fois de la tête !",
+  "Antoine Griezmann est l'un des joueurs les plus décisifs de l'histoire des Bleus.",
+  "Le ballon officiel de la Coupe du Monde 2026 s'appelle « Adidas Finale 26 ».",
+  "Hugo Lloris est le gardien le plus capé de l'histoire de l'équipe de France.",
+  "Le Paris Saint-Germain est le club le plus titré de France avec plus de 10 championnats.",
+  "L'Azteca, au Mexique, est le seul stade à avoir accueilli deux finales de Coupe du Monde.",
 ];
 
 export default function LoadingScreen({ title, gifUrl, longWait, startTime }: LoadingScreenProps) {
@@ -101,7 +101,7 @@ export default function LoadingScreen({ title, gifUrl, longWait, startTime }: Lo
 
         {longWait && (
           <p className="text-sm font-bold text-copa-blue text-center -mt-4" style={{ fontFamily: "var(--font-papernotes)" }}>
-            Não saia dessa tela, leva até 2 minutos.
+            Ne quittez pas cet écran, cela peut prendre jusqu&apos;à 2 minutes.
           </p>
         )}
 
@@ -118,18 +118,18 @@ export default function LoadingScreen({ title, gifUrl, longWait, startTime }: Lo
         >
           {longWait ? (
             <>
-              <span className="text-copa-blue font-bold">Você sabia?</span>{" "}
+              <span className="text-copa-blue font-bold">Le saviez-vous ?</span>{" "}
               {curiosidades[curiosidadeIndex]}
             </>
           ) : (
-            "Esse tem cara de jogador caro hein"
+            "Il a vraiment la tête d'un grand champion !"
           )}
         </p>
 
         <div className="w-full">
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs font-bold text-copa-blue" style={{ fontFamily: "var(--font-papernotes)" }}>
-              {longWait && elapsed > 0 ? `${elapsed}s` : "Carregando..."}
+              {longWait && elapsed > 0 ? `${elapsed}s` : "Chargement..."}
             </span>
             <span className="text-sm font-bold text-copa-blue" style={{ fontFamily: "var(--font-papernotes)" }}>
               {percent}%
