@@ -215,15 +215,15 @@ export default function Home() {
 
       {appStep === "loading-photo" && (
         <LoadingScreen
-          title="CHARGEMENT DE LA PHOTO"
-          gifUrl="https://media.giphy.com/media/3oz8xQFuxa9FZgH9W8/giphy.gif"
+          title="CARGANDO LA FOTO"
+          gifUrl="https://media.giphy.com/media/Runu6lodl8z7Bycoqx/giphy.gif"
         />
       )}
 
       {appStep === "loading-generate" && (
         <LoadingScreen
-          title="CRÉATION DE VOTRE VIGNETTE"
-          gifUrl="https://media.giphy.com/media/1VnzX7WhV8qic/giphy.gif"
+          title="CREANDO TU FIGURITA"
+          gifUrl="https://media.giphy.com/media/z9Twy2wtzu9Ow/giphy.gif"
           longWait
           startTime={genStartTime}
         />

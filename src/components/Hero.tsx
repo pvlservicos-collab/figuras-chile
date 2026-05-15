@@ -13,8 +13,8 @@ export default function Hero({ onStart }: HeroProps) {
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-3 max-w-2xl"
         style={{ fontFamily: "var(--font-titulo)" }}
       >
-        Transformez votre enfant en{" "}
-        <span style={{ color: "#002395" }}>vignette Panini personnalisée</span> de la Coupe du Monde
+        Transforma a tu hijo en{" "}
+        <span style={{ color: "#002395" }}>figurita Panini personalizada</span> del Mundial
       </h1>
 
       <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-[400px] mb-3 mt-0">
@@ -22,16 +22,19 @@ export default function Hero({ onStart }: HeroProps) {
           className="absolute left-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 rounded-xl overflow-hidden shadow-xl z-10"
           style={{
             transform: "rotate(-8deg)",
-            animation: "wiggle 5.5s ease-in-out infinite",
+            animation: "wiggle 7s ease-in-out infinite",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
           }}
         >
           <div className="relative w-full h-full">
             <Image
-              src="/figurinha-camille.png"
-              alt="Figurinha Camille"
+              src="/figurinha-mia.png"
+              alt="Figurinha Mia"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 144px, 192px"
+              quality={95}
               priority
             />
             <div className="absolute inset-0 shine-effect" />
@@ -41,16 +44,19 @@ export default function Hero({ onStart }: HeroProps) {
         <div
           className="absolute left-[58%] -translate-x-1/2 top-8 w-44 h-64 md:w-60 md:h-[340px] rounded-xl overflow-hidden shadow-2xl z-30"
           style={{
-            animation: "wiggle 5.5s ease-in-out infinite 0.5s",
+            animation: "wiggle 7s ease-in-out infinite 0.5s",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
           }}
         >
           <div className="relative w-full h-full">
             <Image
-              src="/figurinha-antoine.png"
-              alt="Figurinha Antoine"
+              src="/figurinha-lucas.png"
+              alt="Figurinha Lucas"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 176px, 240px"
+              quality={95}
               priority
             />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "1s" }} />
@@ -61,16 +67,19 @@ export default function Hero({ onStart }: HeroProps) {
           className="absolute right-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 rounded-xl overflow-hidden shadow-xl z-10"
           style={{
             transform: "rotate(8deg)",
-            animation: "wiggle-down 5.5s ease-in-out infinite 1s",
+            animation: "wiggle-down 7s ease-in-out infinite 1s",
+            willChange: "transform",
+            backfaceVisibility: "hidden",
           }}
         >
           <div className="relative w-full h-full">
             <Image
-              src="/figurinha-camille.png"
-              alt="Figurinha Camille"
+              src="/figurinha-mia.png"
+              alt="Figurinha Mia"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 144px, 192px"
+              quality={95}
               priority
             />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "2s" }} />
@@ -82,8 +91,8 @@ export default function Hero({ onStart }: HeroProps) {
         className="text-lg md:text-xl max-w-md mb-3 leading-relaxed"
         style={{ fontFamily: "var(--font-papernotes)" }}
       >
-        Répondez à quelques questions et créez une vignette unique avec le nom,
-        la photo et le style de votre petit champion.
+        Responde unas pocas preguntas y crea una figurita única con el nombre,
+        la foto y el estilo de tu pequeño campeón.
       </p>
 
       <button
@@ -93,17 +102,17 @@ export default function Hero({ onStart }: HeroProps) {
           animate-pulse-glow cursor-pointer tracking-[0.15em]"
         style={{ fontFamily: "var(--font-titulo)" }}
       >
-        COMMENCER
+        EMPEZAR
       </button>
 
       <div className="mt-3 flex flex-col items-center gap-2">
         <div className="flex items-center gap-1">
           {[
-            { code: "fr", label: "França", big: true },
-            { code: "br", label: "Brasil", big: false },
+            { code: "cl", label: "Chile", big: true },
             { code: "ar", label: "Argentina", big: false },
-            { code: "de", label: "Alemanha", big: false },
-            { code: "es", label: "Espanha", big: false },
+            { code: "br", label: "Brasil", big: false },
+            { code: "es", label: "España", big: false },
+            { code: "de", label: "Alemania", big: false },
           ].map(({ code, label, big }) => (
             <img
               key={code}
@@ -117,7 +126,7 @@ export default function Hero({ onStart }: HeroProps) {
           ))}
         </div>
         <p className="text-sm font-bold" style={{ fontFamily: "var(--font-papernotes)" }}>
-          +2 500 vignettes déjà créées !
+          +2.500 figuritas ya creadas!
         </p>
       </div>
     </section>

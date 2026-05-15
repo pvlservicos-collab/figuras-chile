@@ -10,24 +10,24 @@ interface LoadingScreenProps {
 }
 
 const curiosidades = [
-  "La Coupe du Monde 2026 sera la première à réunir 48 équipes ! Du jamais vu dans l'histoire du foot !",
-  "La France a remporté 2 Coupes du Monde : en 1998 à domicile et en 2018 en Russie. Les Bleus visent le triplé !",
-  "Kylian Mbappé est devenu champion du monde à seulement 19 ans. Un talent hors norme !",
-  "La première Coupe du Monde a eu lieu en 1930, en Uruguay. La France y participait déjà !",
-  "Le record de buts en une Coupe du Monde ? Just Fontaine avec 13 buts en 1958 — et il jouait pour la France !",
-  "Zinédine Zidane a été élu meilleur joueur du monde 3 fois de suite. Une légende absolue.",
-  "Le Stade de France peut accueillir plus de 80 000 spectateurs. Une cathédrale du football.",
-  "La Coupe du Monde 2026 se déroulera aux États-Unis, au Mexique et au Canada.",
-  "Le but le plus rapide de l'histoire de la Coupe du Monde a été inscrit en seulement 10,8 secondes !",
-  "Didier Deschamps est l'un des rares à avoir été champion du monde en tant que joueur ET en tant qu'entraîneur.",
-  "Miroslav Klose est le meilleur buteur de l'histoire de la Coupe du Monde avec 16 buts.",
-  "Le Brésil est la seule équipe à avoir participé à toutes les éditions de la Coupe du Monde.",
-  "En 1998, la France a battu le Brésil 3-0 en finale. Zidane a marqué deux fois de la tête !",
-  "Antoine Griezmann est l'un des joueurs les plus décisifs de l'histoire des Bleus.",
-  "Le ballon officiel de la Coupe du Monde 2026 s'appelle « Adidas Finale 26 ».",
-  "Hugo Lloris est le gardien le plus capé de l'histoire de l'équipe de France.",
-  "Le Paris Saint-Germain est le club le plus titré de France avec plus de 10 championnats.",
-  "L'Azteca, au Mexique, est le seul stade à avoir accueilli deux finales de Coupe du Monde.",
+  "🇨🇱 ¡La Roja ganó la Copa América dos veces seguidas, en 2015 y 2016! ¡Nadie lo había logrado antes en la era moderna!",
+  "⚽ Alexis Sánchez es el máximo goleador de la historia de Chile con más de 50 goles. ¡Un monstruo del fútbol!",
+  "🏆 En el Mundial de Brasil 2014, Chile eliminó a España, ¡la campeona del mundo! Uno de los partidos más épicos de la historia.",
+  "🥊 Gary Medel, el 'Pitbull', es pura garra y corazón. ¡El tipo que nunca se rinde ni aunque lo echen!",
+  "🌟 Marcelo Salas, el 'Matador', fue uno de los delanteros más temidos de América en los años 90. ¡Ídolo eterno!",
+  "💪 Arturo Vidal fue campeón de liga en Italia, España, Alemania y Brasil. ¡El guerrero más completo del fútbol chileno!",
+  "🥅 Claudio Bravo fue capitán de La Roja en las dos Copas América ganadas. ¡Manos de oro bajo el arco!",
+  "🎉 Chile fue el anfitrión de la Copa América 2015 y levantó el trofeo en casa. ¡El Estadio Nacional explotó de alegría!",
+  "🚀 Ivan Zamorano, 'Bam Bam', jugó en el Real Madrid y el Inter de Milán. ¡Un chileno conquistando Europa!",
+  "📺 El partido Chile vs. España en Brasil 2014 fue visto por más de 30 millones de personas solo en Chile. ¡País paralizado!",
+  "🌎 Chile clasificó a 4 Mundiales consecutivos: 1998, 2010, 2014 y 2018. ¡La época dorada de La Roja!",
+  "🏟️ El Estadio Nacional de Santiago tiene capacidad para más de 47.000 hinchas. ¡Un caldero cuando juega La Roja!",
+  "⭐ Esteban Paredes es el máximo goleador histórico del fútbol chileno a nivel de clubes. ¡Leyenda de Colo-Colo!",
+  "🎯 Chile eliminó a Brasil en los penales en la Copa América 2015. ¡David Pizarro y compañía no temblaron!",
+  "🌟 La generación dorada de Chile (2010–2016) es considerada la mejor de la historia del fútbol sudamericano.",
+  "🔴 La camiseta roja de La Roja es una de las más icónicas de Sudamérica. ¡Cuando sale esa camiseta, todos tiemblan!",
+  "🏆 El Mundial 2026 se jugará en EE.UU., México y Canadá. ¡Chile tiene todo para volver a brillar en la gran fiesta!",
+  "💥 En la Copa América 2016, Chile venció a Argentina en la final por penales. ¡Dos veces seguidas y dos veces campeón!",
 ];
 
 export default function LoadingScreen({ title, gifUrl, longWait, startTime }: LoadingScreenProps) {
@@ -101,7 +101,7 @@ export default function LoadingScreen({ title, gifUrl, longWait, startTime }: Lo
 
         {longWait && (
           <p className="text-sm font-bold text-copa-blue text-center -mt-4" style={{ fontFamily: "var(--font-papernotes)" }}>
-            Ne quittez pas cet écran, cela peut prendre jusqu&apos;à 2 minutes.
+            No abandones esta pantalla, puede demorar hasta 2 minutos.
           </p>
         )}
 
@@ -119,14 +119,14 @@ export default function LoadingScreen({ title, gifUrl, longWait, startTime }: Lo
           {longWait ? (
             <span className="text-copa-blue font-bold">⚽ {curiosidades[curiosidadeIndex]}</span>
           ) : (
-            "Hihi… il aime bien"
+            "¡Esa es pinta de campeón, po! 🏆"
           )}
         </p>
 
         <div className="w-full">
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs font-bold text-copa-blue" style={{ fontFamily: "var(--font-papernotes)" }}>
-              {longWait && elapsed > 0 ? `${elapsed}s` : "Chargement..."}
+              {longWait && elapsed > 0 ? `${elapsed}s` : "Cargando..."}
             </span>
             <span className="text-sm font-bold text-copa-blue" style={{ fontFamily: "var(--font-papernotes)" }}>
               {percent}%

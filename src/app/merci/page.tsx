@@ -36,7 +36,7 @@ export default function Merci() {
   const handleDownload = () => {
     if (!stickerUrl) return;
     const a = document.createElement("a");
-    a.href = `/api/download?url=${encodeURIComponent(stickerUrl)}&name=ma-vignette-copa2026`;
+    a.href = `/api/download?url=${encodeURIComponent(stickerUrl)}&name=mi-figurita-copa2026`;
     a.click();
   };
 
@@ -50,7 +50,7 @@ export default function Merci() {
           style={{ transform: "rotate(-8deg)", animation: "wiggle 5.5s ease-in-out infinite" }}
         >
           <div className="relative w-full h-full">
-            <Image src="/figurinha-camille.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
+            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
             <div className="absolute inset-0 shine-effect" />
           </div>
         </div>
@@ -59,7 +59,7 @@ export default function Merci() {
           style={{ animation: "wiggle 5.5s ease-in-out infinite 0.5s" }}
         >
           <div className="relative w-full h-full">
-            <Image src="/figurinha-antoine.png" alt="Figurinha" fill className="object-cover" sizes="128px" />
+            <Image src="/figurinha-lucas.png" alt="Figurinha" fill className="object-cover" sizes="128px" />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "1s" }} />
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function Merci() {
           style={{ transform: "rotate(8deg)", animation: "wiggle-down 5.5s ease-in-out infinite 1s" }}
         >
           <div className="relative w-full h-full">
-            <Image src="/figurinha-camille.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
+            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "2s" }} />
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function Merci() {
           className="text-5xl md:text-7xl font-bold text-copa-blue text-center tracking-[0.1em] mb-1"
           style={{ fontFamily: "var(--font-titulo)" }}
         >
-          MERCI !
+          ¡GRACIAS!
         </h1>
         <span className="text-5xl mb-6">⚽</span>
 
@@ -96,7 +96,7 @@ export default function Merci() {
                 <>
                   <div className="w-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-copa-blue">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={stickerUrl} alt="Votre vignette" className="w-full h-auto" />
+                    <img src={stickerUrl} alt="Tu figurita" className="w-full h-auto" />
                   </div>
                   <button
                     onClick={handleDownload}
@@ -104,10 +104,10 @@ export default function Merci() {
                       shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em] flex items-center justify-center gap-2"
                     style={{ fontFamily: "var(--font-titulo)" }}
                   >
-                    ⬇ TÉLÉCHARGER MA VIGNETTE
+                    ⬇ DESCARGAR MI FIGURITA
                   </button>
                   <p className="text-sm text-copa-blue font-bold text-center" style={{ fontFamily: "var(--font-papernotes)" }}>
-                    Cliquez pour télécharger votre vignette
+                    Haz clic para descargar tu figurita
                   </p>
                 </>
               ) : null}
@@ -120,23 +120,23 @@ export default function Merci() {
               className="text-xl text-center leading-relaxed mb-2"
               style={{ fontFamily: "var(--font-papernotes)" }}
             >
-              Votre paiement a été confirmé !
+              ¡Tu pago fue confirmado!
             </p>
 
             <p
               className="text-lg text-center leading-relaxed mb-2"
               style={{ fontFamily: "var(--font-papernotes)" }}
             >
-              Votre <strong className="text-copa-blue">vignette personnalisée</strong> vous sera
-              envoyée par <strong className="text-copa-blue">e-mail</strong> dans
-              moins de <strong className="text-copa-blue">30 minutes</strong>.
+              Tu <strong className="text-copa-blue">figurita personalizada</strong> te será
+              enviada por <strong className="text-copa-blue">correo electrónico</strong> en
+              menos de <strong className="text-copa-blue">30 minutos</strong>.
             </p>
 
             <p
               className="text-base text-gray-600 text-center mb-6"
               style={{ fontFamily: "var(--font-papernotes)" }}
             >
-              Le fichier PDF sera prêt à imprimer, avec 9 vignettes au format standard (6,5 x 9 cm).
+              El archivo PDF estará listo para imprimir, con 9 figuritas en formato estándar (6,5 x 9 cm).
             </p>
 
             <a
@@ -145,7 +145,7 @@ export default function Merci() {
                 shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em] text-center block"
               style={{ fontFamily: "var(--font-titulo)" }}
             >
-              CRÉER UNE NOUVELLE VIGNETTE
+              CREAR UNA NUEVA FIGURITA
             </a>
           </div>
 
