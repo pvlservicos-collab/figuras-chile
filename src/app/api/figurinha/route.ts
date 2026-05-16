@@ -34,12 +34,14 @@ function getGrowthData(dataNascimento: string) {
 }
 
 let cachedModeloBuffer: Buffer | null = null;
+let cachedModeloPath: string | null = null;
 
 async function getModeloComprimido(): Promise<Buffer> {
-  if (cachedModeloBuffer) return cachedModeloBuffer;
   const modeloPath = join(process.cwd(), "public", "modelo-figurinha.jpg");
+  if (cachedModeloBuffer && cachedModeloPath === modeloPath) return cachedModeloBuffer;
   const modeloBuffer = readFileSync(modeloPath);
   cachedModeloBuffer = await sharp(modeloBuffer).resize(512).jpeg({ quality: 75 }).toBuffer();
+  cachedModeloPath = modeloPath;
   return cachedModeloBuffer;
 }
 
@@ -180,15 +182,15 @@ TASK: Create a new version of the sticker card (Image 2) featuring the person fr
 
 INSTRUCTIONS:
 
-1. REMOVE the adult athlete from Image 2 entirely.
+1. REMOVE the athlete from Image 2 entirely.
 
-2. GENERATE a medium close-up portrait of the person from Image 1: from the chest up, facing forward, arms down. The person must wear the blue France 2026 national team jersey (dark blue, "Bleu de France" #002395) with the French Football Federation badge on the chest. IMPORTANT: the jersey and body must match the REAL proportions of the person from Image 1. If the subject is a child, draw a child-sized body with a child-sized jersey. If the subject is an adult, draw an adult-sized body. Do NOT put a child's head on an adult body.
+2. GENERATE a medium close-up portrait of the person from Image 1: from the chest up, facing forward, arms down. The person must wear the Chile 2026 national team jersey (red jersey, "La Roja", with the Chilean Football Federation badge — the red star crest — on the chest). IMPORTANT: the jersey and body must match the REAL proportions of the person from Image 1. If the subject is a child, draw a child-sized body with a child-sized jersey. If the subject is an adult, draw an adult-sized body. Do NOT put a child's head on an adult body.
 
 3. The person's FACE must be identical to Image 1: same facial features, expression, hair, skin tone, eyes, smile. Do not alter the face in any way.
 
 4. Place this portrait into the card, centered in the same area where the original athlete was.
 
-5. Keep ALL other elements of Image 2 exactly as they are: turquoise background, green "26" graphic, all icons, emblems, flag, vertical text, logos, borders, card edges, bottom text area.
+5. Keep ALL other elements of Image 2 exactly as they are: background, graphics, all icons, emblems, flag, vertical text, logos, borders, card edges, bottom text area. Do NOT change the template design.
 
 6. Update the text fields with the following data:
 [NAME]: ${nomeUpper}
