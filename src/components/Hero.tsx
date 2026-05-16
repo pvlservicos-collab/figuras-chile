@@ -18,68 +18,46 @@ export default function Hero({ onStart }: HeroProps) {
       </h1>
 
       <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-[400px] mb-3 mt-0">
-        <div
-          className="absolute left-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 rounded-xl overflow-hidden shadow-xl z-10"
-          style={{
-            transform: "rotate(-8deg)",
-            animation: "wiggle 7s ease-in-out infinite",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
-          }}
-        >
-          <div className="relative w-full h-full">
+        {/* Wrapper com rotação estática — animação só no wrapper interno */}
+        <div className="absolute left-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 z-10" style={{ transform: "rotate(-8deg)" }}>
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-xl" style={{ animation: "wiggle 7s ease-in-out infinite" }}>
             <Image
               src="/figurinha-mia.png"
               alt="Figurinha Mia"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 144px, 192px"
-              quality={95}
+              quality={100}
               priority
             />
             <div className="absolute inset-0 shine-effect" />
           </div>
         </div>
 
-        <div
-          className="absolute left-[58%] -translate-x-1/2 top-8 w-44 h-64 md:w-60 md:h-[340px] rounded-xl overflow-hidden shadow-2xl z-30"
-          style={{
-            animation: "wiggle 7s ease-in-out infinite 0.5s",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
-          }}
-        >
-          <div className="relative w-full h-full">
+        <div className="absolute left-[58%] -translate-x-1/2 top-8 w-44 h-64 md:w-60 md:h-[340px] z-30">
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl" style={{ animation: "wiggle 7s ease-in-out infinite 0.5s" }}>
             <Image
               src="/figurinha-lucas.png"
               alt="Figurinha Lucas"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 176px, 240px"
-              quality={95}
+              quality={100}
               priority
             />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "1s" }} />
           </div>
         </div>
 
-        <div
-          className="absolute right-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 rounded-xl overflow-hidden shadow-xl z-10"
-          style={{
-            transform: "rotate(8deg)",
-            animation: "wiggle-down 7s ease-in-out infinite 1s",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
-          }}
-        >
-          <div className="relative w-full h-full">
+        <div className="absolute right-0 top-14 md:top-16 w-36 h-52 md:w-48 md:h-72 z-10" style={{ transform: "rotate(8deg)" }}>
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-xl" style={{ animation: "wiggle-down 7s ease-in-out infinite 1s" }}>
             <Image
               src="/figurinha-mia.png"
               alt="Figurinha Mia"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 144px, 192px"
-              quality={95}
+              quality={100}
               priority
             />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "2s" }} />
