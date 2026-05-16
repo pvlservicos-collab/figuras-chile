@@ -14,7 +14,7 @@ async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
   throw new Error("Falhou após tentativas");
 }
 
-export default function Merci() {
+export default function Gracias() {
   const [stickerUrl, setStickerUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,38 +43,29 @@ export default function Merci() {
   return (
     <main className="flex flex-col items-center min-h-screen bg-white px-5 py-8 overflow-hidden">
 
-      {/* Figurinhas animadas no topo */}
+      {/* Figurinhas estáticas no topo */}
       <div className="relative w-56 h-56 sm:w-64 sm:h-64 mb-4 flex-shrink-0">
-        <div
-          className="absolute left-0 top-4 w-24 h-36 rounded-xl overflow-hidden shadow-xl z-10"
-          style={{ transform: "rotate(-8deg)", animation: "wiggle 5.5s ease-in-out infinite" }}
-        >
-          <div className="relative w-full h-full">
-            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
+        <div className="absolute left-0 top-4 w-24 h-36 z-10" style={{ transform: "rotate(-8deg)" }}>
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-xl">
+            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" quality={100} />
             <div className="absolute inset-0 shine-effect" />
           </div>
         </div>
-        <div
-          className="absolute left-[58%] -translate-x-1/2 top-2 w-32 h-48 rounded-xl overflow-hidden shadow-2xl z-30"
-          style={{ animation: "wiggle 5.5s ease-in-out infinite 0.5s" }}
-        >
-          <div className="relative w-full h-full">
-            <Image src="/figurinha-lucas.png" alt="Figurinha" fill className="object-cover" sizes="128px" />
+        <div className="absolute left-[58%] -translate-x-1/2 top-2 w-32 h-48 z-30">
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-2xl">
+            <Image src="/figurinha-lucas.png" alt="Figurinha" fill className="object-cover" sizes="128px" quality={100} />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "1s" }} />
           </div>
         </div>
-        <div
-          className="absolute right-0 top-4 w-24 h-36 rounded-xl overflow-hidden shadow-xl z-10"
-          style={{ transform: "rotate(8deg)", animation: "wiggle-down 5.5s ease-in-out infinite 1s" }}
-        >
-          <div className="relative w-full h-full">
-            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" />
+        <div className="absolute right-0 top-4 w-24 h-36 z-10" style={{ transform: "rotate(8deg)" }}>
+          <div className="relative w-full h-full rounded-xl overflow-hidden shadow-xl">
+            <Image src="/figurinha-mia.png" alt="Figurinha" fill className="object-cover" sizes="96px" quality={100} />
             <div className="absolute inset-0 shine-effect" style={{ animationDelay: "2s" }} />
           </div>
         </div>
       </div>
 
-      {/* Título sempre centralizado */}
+      {/* Título */}
       <div className="w-full max-w-3xl flex flex-col items-center animate-slide-up">
         <h1
           className="text-5xl md:text-7xl font-bold text-copa-blue text-center tracking-[0.1em] mb-1"
@@ -84,10 +75,9 @@ export default function Merci() {
         </h1>
         <span className="text-5xl mb-6">⚽</span>
 
-        {/* Card com a figurinha da pessoa — mobile: aqui (abaixo do título), PC: à direita via flex-row */}
         <div className={`w-full flex flex-col ${stickerUrl || loading ? "md:flex-row md:gap-10 md:items-start" : ""}`}>
 
-          {/* Coluna do card — no mobile aparece primeiro (abaixo do título), no PC vai pra direita */}
+          {/* Figurita personalizada do cliente */}
           {(loading || stickerUrl) && (
             <div className="flex flex-col items-center gap-3 mb-6 md:mb-0 md:order-2 md:flex-shrink-0">
               {loading ? (
@@ -96,7 +86,7 @@ export default function Merci() {
                 <>
                   <div className="w-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-copa-blue">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={stickerUrl} alt="Tu figurita" className="w-full h-auto" />
+                    <img src={stickerUrl} alt="Tu lámina" className="w-full h-auto" />
                   </div>
                   <button
                     onClick={handleDownload}
@@ -104,17 +94,17 @@ export default function Merci() {
                       shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em] flex items-center justify-center gap-2"
                     style={{ fontFamily: "var(--font-titulo)" }}
                   >
-                    ⬇ DESCARGAR MI FIGURITA
+                    ⬇ DESCARGAR MI LÁMINA
                   </button>
                   <p className="text-sm text-copa-blue font-bold text-center" style={{ fontFamily: "var(--font-papernotes)" }}>
-                    Haz clic para descargar tu figurita
+                    Haz clic para descargar tu lámina
                   </p>
                 </>
               ) : null}
             </div>
           )}
 
-          {/* Coluna do texto — no mobile aparece depois do card, no PC vai pra esquerda */}
+          {/* Texto */}
           <div className="flex flex-col items-center flex-1 md:order-1">
             <p
               className="text-xl text-center leading-relaxed mb-2"
@@ -127,7 +117,7 @@ export default function Merci() {
               className="text-lg text-center leading-relaxed mb-2"
               style={{ fontFamily: "var(--font-papernotes)" }}
             >
-              Tu <strong className="text-copa-blue">figurita personalizada</strong> te será
+              Tu <strong className="text-copa-blue">lámina personalizada</strong> te será
               enviada por <strong className="text-copa-blue">correo electrónico</strong> en
               menos de <strong className="text-copa-blue">30 minutos</strong>.
             </p>
@@ -136,7 +126,7 @@ export default function Merci() {
               className="text-base text-gray-600 text-center mb-6"
               style={{ fontFamily: "var(--font-papernotes)" }}
             >
-              El archivo PDF estará listo para imprimir, con 9 figuritas en formato estándar (6,5 x 9 cm).
+              El archivo PDF estará listo para imprimir, con 9 láminas en formato estándar (6,5 x 9 cm).
             </p>
 
             <a
@@ -145,7 +135,7 @@ export default function Merci() {
                 shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em] text-center block"
               style={{ fontFamily: "var(--font-titulo)" }}
             >
-              CREAR UNA NUEVA FIGURITA
+              CREAR UNA NUEVA LÁMINA
             </a>
           </div>
 
