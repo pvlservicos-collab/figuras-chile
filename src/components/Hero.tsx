@@ -14,7 +14,7 @@ export default function Hero({ onStart }: HeroProps) {
         style={{ fontFamily: "var(--font-titulo)" }}
       >
         Transforma a tu hijo en{" "}
-        <span style={{ color: "#002395" }}>figurita Panini personalizada</span> del Mundial
+        <span style={{ color: "#003DA5" }}>lámina personalizada del Mundial</span>
       </h1>
 
       <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-[400px] mb-3 mt-0">

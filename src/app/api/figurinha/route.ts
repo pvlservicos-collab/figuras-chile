@@ -37,7 +37,7 @@ let cachedModeloBuffer: Buffer | null = null;
 
 async function getModeloComprimido(): Promise<Buffer> {
   if (cachedModeloBuffer) return cachedModeloBuffer;
-  const modeloPath = join(process.cwd(), "public", "modelo-figurinha.png");
+  const modeloPath = join(process.cwd(), "public", "modelo-figurinha.jpg");
   const modeloBuffer = readFileSync(modeloPath);
   cachedModeloBuffer = await sharp(modeloBuffer).resize(512).jpeg({ quality: 75 }).toBuffer();
   return cachedModeloBuffer;
