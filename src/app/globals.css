@@ -48,8 +48,8 @@ body {
   font-family: 'Papernotes', cursive;
 }
 
-/* Oculta elementos do CartPanda */
-[class*="cpd-"] {
+/* Oculta elementos visuais do script Cartpanda sem quebrar o tracking */
+[class^="cpd-"], [class*=" cpd-"], [id^="cpd-"], [id^="cartpanda-"] {
   display: none !important;
 }
 
