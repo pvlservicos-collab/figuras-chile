@@ -6,14 +6,17 @@ interface ResultScreenProps {
   stickerUrl: string;
   stickerId: string;
   onRetry: () => void;
+  checkoutUrl?: string;
+  price?: string;
+  ctaText?: string;
 }
 
-export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultScreenProps) {
+export default function ResultScreen({ stickerUrl, stickerId, onRetry, checkoutUrl: checkoutUrlProp, price, ctaText }: ResultScreenProps) {
   const handleCheckout = () => {
     sessionStorage.removeItem("figurinha_sticker_url");
     sessionStorage.removeItem("figurinha_sticker_id");
     try { localStorage.setItem("figurinha_sticker_id", stickerId); } catch { /* ignore */ }
-    const checkoutUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL || "https://eaglemedia.mycartpanda.com/checkout/210148860:1";
+    const checkoutUrl = checkoutUrlProp || process.env.NEXT_PUBLIC_CHECKOUT_URL || "https://folem.mycartpanda.com/checkout/211069931:1";
 
     // Capturar UTMs da URL original e cookies pra passar pro checkout
     const params = new URLSearchParams(window.location.search);
@@ -167,7 +170,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
             className="text-5xl md:text-6xl text-copa-green text-center mb-6 relative inline-block shine-effect"
             style={{ fontFamily: "'Montserrat', Arial Black, sans-serif", fontWeight: 900 }}
           >
-            €2,99
+            {price || "MX$63.99"}
           </p>
 
           {/* Botão */}
@@ -177,7 +180,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry }: ResultS
               shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.15em]"
             style={{ fontFamily: "var(--font-titulo)" }}
           >
-            RECIBIR MI FIGURITA
+            {ctaText || "⚽ RECIBIR MI CROMO"}
           </button>
         </div>
       )}

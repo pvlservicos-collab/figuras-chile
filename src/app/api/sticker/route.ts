@@ -3,18 +3,28 @@ import { getDb } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
-  if (!id || !/^[0-9a-f-]{36}$/.test(id)) {
-    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-  }
+  const emailParam = req.nextUrl.searchParams.get("email");
 
   const sql = getDb();
   let rows: Record<string, string>[] = [];
+
   try {
-    rows = await sql`
-      SELECT sticker_url FROM pedidos
-      WHERE sticker_id = ${id}
-      LIMIT 1
-    `;
+    if (emailParam) {
+      const emailSafe = emailParam.trim().toLowerCase().slice(0, 255);
+      rows = await sql`
+        SELECT sticker_url FROM pedidos
+        WHERE email = ${emailSafe} AND sticker_url IS NOT NULL
+        ORDER BY created_at DESC LIMIT 1
+      `;
+    } else if (id && /^[0-9a-f-]{36}$/.test(id)) {
+      rows = await sql`
+        SELECT sticker_url FROM pedidos
+        WHERE sticker_id = ${id}
+        LIMIT 1
+      `;
+    } else {
+      return NextResponse.json({ error: "Parâmetro inválido" }, { status: 400 });
+    }
   } catch {
     return NextResponse.json({ error: "Erro no banco" }, { status: 500 });
   }

@@ -14,9 +14,17 @@ async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
   throw new Error("Falhou após tentativas");
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Gracias() {
   const [stickerUrl, setStickerUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Recovery por email
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -33,11 +41,41 @@ export default function Gracias() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDownload = () => {
-    if (!stickerUrl) return;
+  const handleDownload = (url: string) => {
     const a = document.createElement("a");
-    a.href = `/api/download?url=${encodeURIComponent(stickerUrl)}&name=mi-figurita-copa2026`;
+    a.href = `/api/download?url=${encodeURIComponent(url)}&name=mi-figurita-copa2026`;
     a.click();
+  };
+
+  const handleSearchByEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchError("");
+    setSearchResult(null);
+
+    const email = searchEmail.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(email)) {
+      setSearchError("Ingresa un correo electrónico válido (ejemplo: tucorreo@email.com)");
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const res = await fetch(`/api/sticker?email=${encodeURIComponent(email)}`);
+      if (!res.ok) {
+        setSearchError("No encontramos una lámina asociada a ese correo. Verifica que escribiste bien el email.");
+        return;
+      }
+      const data = await res.json();
+      if (data.url) {
+        setSearchResult(data.url);
+      } else {
+        setSearchError("No encontramos una lámina asociada a ese correo.");
+      }
+    } catch {
+      setSearchError("Error de conexión. Inténtalo de nuevo.");
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   return (
@@ -89,7 +127,7 @@ export default function Gracias() {
                     <img src={stickerUrl} alt="Tu lámina" className="w-full h-auto" />
                   </div>
                   <button
-                    onClick={handleDownload}
+                    onClick={() => handleDownload(stickerUrl)}
                     className="w-full max-w-xs bg-copa-blue text-white font-bold text-base py-4 rounded-2xl
                       shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.1em] flex items-center justify-center gap-2"
                     style={{ fontFamily: "var(--font-titulo)" }}
@@ -140,6 +178,64 @@ export default function Gracias() {
           </div>
 
         </div>
+
+        {/* Sección de recuperación por email */}
+        <div className="w-full mt-10 border-t border-gray-200 pt-8">
+          <h2
+            className="text-lg font-bold text-copa-blue text-center mb-1"
+            style={{ fontFamily: "var(--font-titulo)" }}
+          >
+            ¿No ves tu lámina arriba?
+          </h2>
+          <p
+            className="text-sm text-gray-500 text-center mb-4"
+            style={{ fontFamily: "var(--font-papernotes)" }}
+          >
+            Ingresa el correo que usaste al crear tu figurita para recuperarla.
+          </p>
+
+          <form onSubmit={handleSearchByEmail} className="flex flex-col gap-3 max-w-md mx-auto">
+            <input
+              type="email"
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+              placeholder="tucorreo@ejemplo.com"
+              className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:border-copa-blue focus:outline-none transition-colors placeholder:text-gray-400"
+              style={{ fontFamily: "var(--font-papernotes)" }}
+            />
+            {searchError && (
+              <p className="text-red-500 text-sm text-center">{searchError}</p>
+            )}
+            <button
+              type="submit"
+              disabled={searchLoading}
+              className="w-full bg-copa-blue text-white font-bold text-base py-3 rounded-xl
+                shadow hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50"
+              style={{ fontFamily: "var(--font-titulo)" }}
+            >
+              {searchLoading ? "Buscando..." : "BUSCAR MI LÁMINA"}
+            </button>
+          </form>
+
+          {/* Resultado da busca */}
+          {searchResult && (
+            <div className="flex flex-col items-center gap-3 mt-6">
+              <div className="w-40 rounded-2xl overflow-hidden shadow-xl border-4 border-copa-blue">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={searchResult} alt="Tu lámina" className="w-full h-auto" />
+              </div>
+              <button
+                onClick={() => handleDownload(searchResult)}
+                className="bg-copa-blue text-white font-bold text-base px-6 py-3 rounded-xl
+                  shadow hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer"
+                style={{ fontFamily: "var(--font-titulo)" }}
+              >
+                ⬇ DESCARGAR MI LÁMINA
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
     </main>
   );

@@ -231,11 +231,17 @@ The result must look like a real printed collectible sticker card with a properl
           if (imageData?.b64_json) break;
         } catch (apiErr: unknown) {
           const errMsg = apiErr instanceof Error ? apiErr.message : String(apiErr);
-          // 429 = rate limit, 402 = sem créditos → tenta próxima key
-          if (errMsg.includes("429") || errMsg.includes("rate") || errMsg.includes("402") || errMsg.includes("insufficient")) {
-            console.log(`OpenAI key ${keyIdx + 1} erro (${errMsg.includes("402") ? "sem creditos" : "rate limit"}) tentativa ${attempt + 1}`);
-            if (attempt === 2) break; // Sai do retry, tenta próxima key
-            continue;
+          const status = (apiErr as { status?: number })?.status;
+          // billing/créditos/rate-limit → pula para próxima key imediatamente
+          const isQuotaError =
+            status === 429 || status === 402 ||
+            errMsg.includes("429") || errMsg.includes("rate") ||
+            errMsg.includes("402") || errMsg.includes("insufficient") ||
+            errMsg.includes("billing") || errMsg.includes("hard_limit") ||
+            errMsg.includes("credit") || errMsg.includes("quota");
+          if (isQuotaError) {
+            console.log(`OpenAI key ${keyIdx + 1} sem cota (status=${status}) — pulando para próxima key`);
+            break; // sai do loop de tentativas e vai para a próxima key
           }
           throw apiErr;
         }
