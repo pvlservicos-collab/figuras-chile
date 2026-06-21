@@ -23,12 +23,12 @@ export default function ConfigPage() {
 
   // Config state
   const [config, setConfig] = useState<SiteConfig>({
-    locale: "es-MX",
-    currency: "MXN",
-    price: "MX$63.99",
-    checkoutUrl: "https://folem.mycartpanda.com/checkout/211069931:1",
-    firstButtonText: "¡EMPEZAR!",
-    purchaseButtonText: "⚽ RECIBIR MI CROMO",
+    locale: "es-CL",
+    currency: "EUR",
+    price: "€2,99",
+    checkoutUrl: "https://eaglemedia.mycartpanda.com/checkout/210148860:1",
+    firstButtonText: "EMPEZAR",
+    purchaseButtonText: "RECIBIR MI FIGURITA",
   });
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -179,12 +179,12 @@ export default function ConfigPage() {
           <form onSubmit={handleSave} className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-5">
             {(
               [
-                { key: "locale", label: "Locale", placeholder: "es-MX" },
-                { key: "currency", label: "Moneda", placeholder: "MXN" },
-                { key: "price", label: "Precio mostrado", placeholder: "MX$63.99" },
+                { key: "locale", label: "Locale", placeholder: "es-CL" },
+                { key: "currency", label: "Moneda", placeholder: "EUR" },
+                { key: "price", label: "Precio mostrado", placeholder: "€2,99" },
                 { key: "checkoutUrl", label: "URL de Checkout", placeholder: "https://..." },
-                { key: "firstButtonText", label: "Texto botón inicial (Hero)", placeholder: "¡EMPEZAR!" },
-                { key: "purchaseButtonText", label: "Texto botón de compra (ResultScreen)", placeholder: "⚽ RECIBIR MI CROMO" },
+                { key: "firstButtonText", label: "Texto botón inicial (Hero)", placeholder: "EMPEZAR" },
+                { key: "purchaseButtonText", label: "Texto botón de compra (ResultScreen)", placeholder: "RECIBIR MI FIGURITA" },
               ] as { key: keyof SiteConfig; label: string; placeholder: string }[]
             ).map(({ key, label, placeholder }) => (
               <div key={key}>

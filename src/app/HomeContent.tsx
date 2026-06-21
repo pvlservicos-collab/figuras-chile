@@ -6,6 +6,8 @@ import QuizStep from "@/components/QuizStep";
 import type { QuizData } from "@/components/QuizStep";
 import LoadingScreen from "@/components/LoadingScreen";
 import ResultScreen from "@/components/ResultScreen";
+import ConfirmScreen from "@/components/ConfirmScreen";
+import { track } from "@/lib/track";
 
 function compressToBase64(file: File, maxSize = 512, quality = 0.7): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -35,10 +37,12 @@ const initialData: QuizData = {
   email: "",
   clube: "",
   jogadorFavorito: "",
+  peso: "",
+  altura: "",
   foto: null,
 };
 
-type AppStep = "hero" | "quiz-1" | "loading-photo" | "quiz-2" | "quiz-3" | "loading-generate" | "result";
+type AppStep = "hero" | "quiz-1" | "loading-photo" | "quiz-2" | "quiz-3" | "confirm" | "loading-generate" | "result";
 
 interface HomeContentProps {
   checkoutUrl?: string;
@@ -66,8 +70,10 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
     return "";
   });
   const [genStartTime, setGenStartTime] = useState(0);
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+  const generatingRef = useRef(false);
 
   // Salvar UTMs da URL na chegada pra usar no checkout depois
   useEffect(() => {
@@ -80,6 +86,24 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
       }
     }
   }, []);
+
+  // Track de passos para o funil
+  useEffect(() => {
+    const stepMap: Partial<Record<AppStep, string>> = {
+      "hero": "hero_view",
+      "quiz-1": "quiz_1",
+      "quiz-2": "quiz_2",
+      "quiz-3": "quiz_3",
+      "confirm": "confirm",
+      "loading-generate": "loading",
+      "result": stickerUrl ? "result_view" : "result_error",
+    };
+    const s = stepMap[appStep];
+    if (!s) return;
+    const { email, nome } = dataRef.current;
+    track(s, { email: email || undefined, nome: nome || undefined });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appStep, stickerUrl]);
 
   // Proteger contra saída durante geração
   useEffect(() => {
@@ -104,13 +128,10 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
       }
     };
     requestWakeLock();
-
-    // Re-adquirir se a página voltar ao foco
     const handleVisibility = () => {
       if (document.visibilityState === "visible") requestWakeLock();
     };
     document.addEventListener("visibilitychange", handleVisibility);
-
     return () => {
       wakeLock?.release();
       document.removeEventListener("visibilitychange", handleVisibility);
@@ -119,11 +140,21 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
 
   const updateData = (fields: Partial<QuizData>) => {
     setData((prev) => ({ ...prev, ...fields }));
+    if (fields.foto) {
+      const url = URL.createObjectURL(fields.foto);
+      setFotoPreviewUrl(url);
+    }
   };
 
   const [errorTimestamp, setErrorTimestamp] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const generateFigurinha = useCallback(async (retryAfterError?: string) => {
+  const generateFigurinha = useCallback(async (retryAfterError?: string, attempt = 0) => {
+    if (generatingRef.current && attempt === 0) return;
+    if (attempt === 0) generatingRef.current = true;
+    const MAX_RETRIES = 4;
+    if (attempt > MAX_RETRIES) { generatingRef.current = false; return; }
+
     const current = dataRef.current;
     try {
       if (!current.foto) throw new Error("Sem foto");
@@ -139,34 +170,39 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
           email: current.email,
           clube: current.clube,
           jogadorFavorito: current.jogadorFavorito,
+          peso: current.peso || undefined,
+          altura: current.altura || undefined,
           fotoBase64,
           errorTimestamp: retryAfterError || undefined,
+          retryAttempt: attempt,
         }),
       });
 
       const result = await res.json();
 
       if (res.ok && result.imageBase64) {
+        generatingRef.current = false;
         const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
         setStickerUrl(dataUrl);
         setStickerId(result.stickerId || "");
         setErrorTimestamp(null);
         sessionStorage.setItem("figurinha_sticker_url", dataUrl);
         sessionStorage.setItem("figurinha_sticker_id", result.stickerId || "");
-      } else {
-        console.error("Erro:", result.error);
-        setStickerUrl("");
-        const now = new Date().toISOString();
-        setErrorTimestamp(now);
+        try { localStorage.setItem("figurinha_sticker_id", result.stickerId || ""); } catch { /* ignore */ }
+        setAppStep("result");
+        return;
       }
+
+      console.warn(`Tentativa ${attempt + 1} falhou: ${result.error}`);
     } catch (error) {
-      console.error("Erro na geração:", error);
-      setStickerUrl("");
-      const now = new Date().toISOString();
-      setErrorTimestamp(now);
+      console.warn(`Tentativa ${attempt + 1} falhou (rede):`, error);
     }
 
-    setAppStep("result");
+    const now = new Date().toISOString();
+    setErrorTimestamp(now);
+    setRetryCount(attempt + 1);
+    await new Promise(r => setTimeout(r, 2000));
+    generateFigurinha(now, attempt + 1);
   }, []);
 
   const handleQuizNext = useCallback(() => {
@@ -180,11 +216,9 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
       setQuizStep(3);
       setAppStep("quiz-3");
     } else if (quizStep === 3) {
-      setGenStartTime(Date.now());
-      setAppStep("loading-generate");
-      generateFigurinha();
+      setAppStep("confirm");
     }
-  }, [quizStep, generateFigurinha]);
+  }, [quizStep]);
 
   const handleQuizBack = useCallback(() => {
     if (quizStep === 2) {
@@ -204,6 +238,9 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
             sessionStorage.removeItem("figurinha_sticker_url");
             sessionStorage.removeItem("figurinha_sticker_id");
             setQuizStep(1);
+            setData(initialData);
+            setFotoPreviewUrl(null);
+            generatingRef.current = false;
             setAppStep("quiz-1");
           }}
           ctaText={firstButtonText}
@@ -228,6 +265,23 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
         />
       )}
 
+      {appStep === "confirm" && (
+        <ConfirmScreen
+          data={data}
+          fotoPreviewUrl={fotoPreviewUrl}
+          onConfirm={() => {
+            if (generatingRef.current) return;
+            setGenStartTime(Date.now());
+            setAppStep("loading-generate");
+            generateFigurinha();
+          }}
+          onBack={() => {
+            setQuizStep(3);
+            setAppStep("quiz-3");
+          }}
+        />
+      )}
+
       {appStep === "loading-generate" && (
         <LoadingScreen
           title="CREANDO TU FIGURITA"
@@ -245,11 +299,12 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
           price={price}
           ctaText={purchaseButtonText}
           onRetry={() => {
+            generatingRef.current = false;
             sessionStorage.removeItem("figurinha_sticker_url");
             sessionStorage.removeItem("figurinha_sticker_id");
             setGenStartTime(Date.now());
             setAppStep("loading-generate");
-            generateFigurinha(errorTimestamp || undefined);
+            generateFigurinha(errorTimestamp || undefined, retryCount);
           }}
         />
       )}

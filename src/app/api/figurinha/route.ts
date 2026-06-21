@@ -9,7 +9,7 @@ import { getDb } from "@/lib/db";
 
 export const maxDuration = 300;
 
-// Tabela de crescimento — percentil 50 brasileiro (altura cm, peso kg)
+// Tabela de crescimento — percentil 50 (altura cm, peso kg)
 const growthChart: Record<number, { altura: number; peso: number }> = {
   0: { altura: 50, peso: 3 }, 1: { altura: 76, peso: 10 }, 2: { altura: 88, peso: 12 },
   3: { altura: 96, peso: 14 }, 4: { altura: 103, peso: 16 }, 5: { altura: 110, peso: 18 },
@@ -30,20 +30,20 @@ function getGrowthData(dataNascimento: string) {
   const data = growthChart[Math.min(age, 18)] || growthChart[18];
   const alturaM = (data.altura / 100).toFixed(2).replace(".", ",");
   const birthDate = `${String(birth.getDate()).padStart(2, "0")}-${String(birth.getMonth() + 1).padStart(2, "0")}-${birth.getFullYear()}`;
-  return { birthDate, altura: alturaM, peso: data.peso };
+  return { birthDate, alturaM, peso: data.peso };
 }
 
 let cachedModeloBuffer: Buffer | null = null;
-let cachedModeloPath: string | null = null;
 
 async function getModeloComprimido(): Promise<Buffer> {
+  if (cachedModeloBuffer) return cachedModeloBuffer;
   const modeloPath = join(process.cwd(), "public", "modelo-figurinha.jpg");
-  if (cachedModeloBuffer && cachedModeloPath === modeloPath) return cachedModeloBuffer;
   const modeloBuffer = readFileSync(modeloPath);
   cachedModeloBuffer = await sharp(modeloBuffer).resize(512).jpeg({ quality: 75 }).toBuffer();
-  cachedModeloPath = modeloPath;
   return cachedModeloBuffer;
 }
+
+function ms(start: number) { return `${Date.now() - start}ms`; }
 
 // Rate limit simples em memória
 const requestLog = new Map<string, number[]>();
@@ -57,123 +57,159 @@ function checkRateLimit(ip: string, maxRequests = 5, windowMs = 60000): boolean 
   return true;
 }
 
-// Sanitizar input — só letras, números, espaços, acentos e hífens
 function sanitizeInput(value: string, maxLen: number): string {
   return value.replace(/[^a-zA-ZÀ-ÿ0-9\s\-'.]/g, "").slice(0, maxLen).trim();
 }
 
-// Pool de API keys — rotaciona se uma falhar (402/429)
 function getOpenAIKeys(): string[] {
   const keys: string[] = [];
-  if (process.env.OPENAI_API_KEY) keys.push(process.env.OPENAI_API_KEY);
+  if (process.env.OPENAI_API_KEY)   keys.push(process.env.OPENAI_API_KEY);
+  if (process.env.OPENAI_API_KEY2)  keys.push(process.env.OPENAI_API_KEY2);
   if (process.env.OPENAI_API_KEY_2) keys.push(process.env.OPENAI_API_KEY_2);
   if (process.env.OPENAI_API_KEY_3) keys.push(process.env.OPENAI_API_KEY_3);
-  return keys;
+  if (process.env.OPENAI_API_KEY_4) keys.push(process.env.OPENAI_API_KEY_4);
+  return [...new Set(keys)]; // deduplica
+}
+
+// Rastreia gerações ativas por key — garante que requests simultâneos usem keys diferentes
+const keyInFlight = new Map<number, number>();
+let rrBase = 0;
+
+function pickBestKey(total: number): number {
+  let best = rrBase % total;
+  let bestLoad = keyInFlight.get(best) ?? 0;
+  for (let i = 1; i < total; i++) {
+    const idx = (rrBase + i) % total;
+    const load = keyInFlight.get(idx) ?? 0;
+    if (load < bestLoad) { bestLoad = load; best = idx; }
+  }
+  rrBase = (rrBase + 1) % total;
+  return best;
 }
 
 export async function POST(req: NextRequest) {
   const apiKeys = getOpenAIKeys();
   if (apiKeys.length === 0) {
-    return NextResponse.json({ error: "Serviço indisponível" }, { status: 500 });
+    return NextResponse.json({ error: "Servicio no disponible" }, { status: 500 });
   }
-  const apiKey = apiKeys[0]; // Começa pela primeira
 
-  // Rate limit por IP
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-  if (!checkRateLimit(ip, 3, 60000)) {
-    return NextResponse.json({ error: "Muitas requisições. Aguarde 1 minuto." }, { status: 429 });
+  if (!checkRateLimit(ip, 5, 60000)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Espera 1 minuto." }, { status: 429 });
   }
 
-  let body: { nome: string; dataNascimento: string; email: string; clube: string; jogadorFavorito: string; peso?: string; altura?: string; fotoBase64: string; errorTimestamp?: string };
+  let body: {
+    nome: string; dataNascimento: string; email?: string; clube: string;
+    jogadorFavorito: string; peso?: string; altura?: string;
+    fotoBase64: string; errorTimestamp?: string; retryAttempt?: number;
+  };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
-  const { nome, dataNascimento, email, clube, jogadorFavorito, fotoBase64, errorTimestamp } = body;
+  const { nome, dataNascimento, email, clube, jogadorFavorito, peso, altura, fotoBase64, errorTimestamp } = body;
   if (!nome || !dataNascimento || !clube || !fotoBase64) {
-    console.error("Dados incompletos:", { nome: !!nome, dataNascimento: !!dataNascimento, clube: !!clube, fotoBase64: !!fotoBase64 });
-    return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
+    return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
 
-  // Validações server-side
   const nomeSafe = sanitizeInput(nome, 50);
   const clubeSafe = sanitizeInput(clube, 50);
   const jogadorSafe = sanitizeInput(jogadorFavorito || "", 50);
 
   if (nomeSafe.length < 2 || clubeSafe.length < 2) {
-    return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
-  // Validar data
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (!dateRegex.test(dataNascimento)) {
-    return NextResponse.json({ error: "Data inválida" }, { status: 400 });
+    return NextResponse.json({ error: "Fecha inválida" }, { status: 400 });
   }
 
-  // Validar base64 — máx 5MB decodificado
   if (fotoBase64.length > 7_000_000) {
-    return NextResponse.json({ error: "Imagem muito grande" }, { status: 400 });
+    return NextResponse.json({ error: "Imagen demasiado grande" }, { status: 400 });
   }
 
   let fotoBuffer: Buffer;
   try {
     fotoBuffer = Buffer.from(fotoBase64, "base64");
     if (fotoBuffer.length > 5_000_000) {
-      return NextResponse.json({ error: "Imagem muito grande" }, { status: 400 });
+      return NextResponse.json({ error: "Imagen demasiado grande" }, { status: 400 });
     }
   } catch {
-    return NextResponse.json({ error: "Imagem inválida" }, { status: 400 });
+    return NextResponse.json({ error: "Imagen inválida" }, { status: 400 });
   }
 
+  const t0 = Date.now();
   const sql = getDb();
-  const emailSafe = email ? email.slice(0, 255).trim().toLowerCase() : null;
+  const emailSafe = email ? email.toLowerCase().trim().slice(0, 200) : null;
 
-  // Se é um retry após erro, buscar figurinha criada DEPOIS do erro
-  // (pode ter gerado com sucesso mas a conexão caiu antes de retornar)
+  // Se é retry após erro, buscar figurinha já gerada (rede caiu antes de retornar)
   if (errorTimestamp && emailSafe) {
-    let existing: Record<string, string>[] = [];
     try {
       const ts = new Date(errorTimestamp);
       if (!isNaN(ts.getTime())) {
-        existing = await sql`
+        const existing = await sql<{ sticker_id: string; sticker_url: string }[]>`
           SELECT sticker_id, sticker_url FROM pedidos
           WHERE email = ${emailSafe}
             AND sticker_url IS NOT NULL
             AND created_at >= ${ts.toISOString()}
           ORDER BY created_at DESC LIMIT 1
         `;
+        if (existing.length > 0) {
+          try {
+            const blobRes = await fetch(existing[0].sticker_url);
+            const blobBuffer = Buffer.from(await blobRes.arrayBuffer());
+            console.log(`Retry: figurinha pós-erro encontrada: ${existing[0].sticker_id}`);
+            return NextResponse.json({
+              imageBase64: blobBuffer.toString("base64"),
+              mimeType: "image/png",
+              stickerId: existing[0].sticker_id,
+            });
+          } catch {
+            console.log("Retry: figurinha não acessível, gerando nova...");
+          }
+        }
       }
     } catch (dbErr) {
       console.error("Erro na busca pós-erro:", dbErr);
     }
-    if (existing.length > 0) {
-      try {
-        const blobRes = await fetch(existing[0].sticker_url);
-        const blobBuffer = Buffer.from(await blobRes.arrayBuffer());
-        console.log(`Retry: figurinha pós-erro encontrada: ${existing[0].sticker_id}`);
-        return NextResponse.json({
-          imageBase64: blobBuffer.toString("base64"),
-          mimeType: "image/png",
-          stickerId: existing[0].sticker_id,
-        });
-      } catch {
-        console.log("Retry: figurinha pós-erro não acessível, gerando nova...");
-      }
-    }
-    console.log("Retry: nenhuma figurinha pós-erro, gerando nova...");
   }
 
-  const modeloBuffer = await getModeloComprimido();
+  // Preparação paralela: rascunho, compressão foto, modelo
+  const rascunhoPromise = emailSafe
+    ? sql<{ id: number }[]>`
+        INSERT INTO pedidos (nome, data_nascimento, clube, jogador_favorito, email, status)
+        VALUES (${nomeSafe}, ${dataNascimento}, ${clubeSafe}, ${jogadorSafe}, ${emailSafe}, 'gerando')
+        RETURNING id
+      `.catch(() => null)
+    : Promise.resolve(null);
+
+  const fotoCompressPromise = sharp(fotoBuffer).resize(512).jpeg({ quality: 80 }).toBuffer()
+    .catch(() => fotoBuffer);
+
+  const [fotoBufferComprimido, modeloBuffer, rascunhoRows] = await Promise.all([
+    fotoCompressPromise,
+    getModeloComprimido(),
+    rascunhoPromise,
+  ]);
+
+  const rascunhoId: number | null = Array.isArray(rascunhoRows) ? (rascunhoRows[0]?.id ?? null) : null;
+  console.log(`pré-geração: ${ms(t0)} | rascunhoId=${rascunhoId}`);
 
   const nomeUpper = nomeSafe.toUpperCase();
   const clubeFormatted = clubeSafe.toUpperCase();
-  const growthData = getGrowthData(dataNascimento);
-  // Usar peso/altura do frontend se informados, senão da tabela
-  const infoLine = growthData.birthDate;
 
-  // Prompt com dados sanitizados entre delimitadores
+  // Peso e altura: usar do usuário se informados, senão da tabela de crescimento
+  const growthData = getGrowthData(dataNascimento);
+  const pesoSafe = peso ? sanitizeInput(peso, 10) : String(growthData.peso);
+  const alturaRaw = altura ? parseFloat(sanitizeInput(altura, 10).replace(",", ".")) : null;
+  const alturaM = alturaRaw != null && !isNaN(alturaRaw)
+    ? (alturaRaw > 3 ? alturaRaw / 100 : alturaRaw).toFixed(2).replace(".", ",")
+    : growthData.alturaM;
+  const infoLine = `${growthData.birthDate} | ${alturaM} m | ${pesoSafe} kg`;
+
   const prompt = `You are given two images:
 - Image 1: A photograph of a person (the SUBJECT). This person may be a child or an adult.
 - Image 2: A collectible sports sticker card (the TEMPLATE).
@@ -199,117 +235,128 @@ INSTRUCTIONS:
 
 The result must look like a real printed collectible sticker card with a properly proportioned portrait of the person from Image 1.`;
 
+  // Escolhe a key com menos gerações ativas
+  const startIdx = pickBestKey(apiKeys.length);
+  keyInFlight.set(startIdx, (keyInFlight.get(startIdx) ?? 0) + 1);
+  console.log(`key escolhida: ${startIdx + 1} | in-flight: [${Array.from({ length: apiKeys.length }, (_, i) => keyInFlight.get(i) ?? 0).join(",")}]`);
+
+  const openaiClients = apiKeys.map(k => new OpenAI({ apiKey: k }));
+  const [fotoFile, modeloFile] = await Promise.all([
+    toFile(fotoBufferComprimido, "foto.jpg", { type: "image/jpeg" }),
+    toFile(modeloBuffer, "modelo.jpg", { type: "image/jpeg" }),
+  ]);
+
   try {
-    console.log("Gerando figurinha...");
+    let b64Result: string | null = null;
+    let successKeyIdx = -1;
+    const genStart = Date.now();
+    let attempt = 0;
+    const TIMEOUT_MS = 250_000;
+    const deadKeys = new Set<number>();
 
-    // Pool de keys + retry com backoff
-    let imageData = null;
-    const BACKOFF_MS = [0, 10000, 20000];
+    console.log(`API start — ${apiKeys.length} key(s), key ${startIdx + 1} primeiro | total: ${ms(t0)}`);
 
-    for (let keyIdx = 0; keyIdx < apiKeys.length; keyIdx++) {
-      const currentKey = apiKeys[keyIdx];
-      const openai = new OpenAI({ apiKey: currentKey });
+    while (!b64Result && (Date.now() - genStart) < TIMEOUT_MS) {
+      const keyIdx = (startIdx + attempt) % apiKeys.length;
 
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (attempt > 0) {
-          console.log(`Retry ${attempt}/2 (key ${keyIdx + 1}) - aguardando ${BACKOFF_MS[attempt] / 1000}s...`);
-          await new Promise(r => setTimeout(r, BACKOFF_MS[attempt]));
-        }
-
-        try {
-          const fotoFile = await toFile(fotoBuffer, "foto.jpg", { type: "image/jpeg" });
-          const modeloFile = await toFile(modeloBuffer, "modelo.jpg", { type: "image/jpeg" });
-
-          const response = await openai.images.edit({
-            model: "gpt-image-2",
-            image: [fotoFile, modeloFile],
-            prompt,
-            size: "768x1152",
-          });
-
-          imageData = response.data?.[0];
-          if (imageData?.b64_json) break;
-        } catch (apiErr: unknown) {
-          const errMsg = apiErr instanceof Error ? apiErr.message : String(apiErr);
-          const status = (apiErr as { status?: number })?.status;
-          // billing/créditos/rate-limit → pula para próxima key imediatamente
-          const isQuotaError =
-            status === 429 || status === 402 ||
-            errMsg.includes("429") || errMsg.includes("rate") ||
-            errMsg.includes("402") || errMsg.includes("insufficient") ||
-            errMsg.includes("billing") || errMsg.includes("hard_limit") ||
-            errMsg.includes("credit") || errMsg.includes("quota");
-          if (isQuotaError) {
-            console.log(`OpenAI key ${keyIdx + 1} sem cota (status=${status}) — pulando para próxima key`);
-            break; // sai do loop de tentativas e vai para a próxima key
-          }
-          throw apiErr;
-        }
+      if (deadKeys.has(keyIdx)) {
+        if (deadKeys.size >= apiKeys.length) break;
+        attempt++;
+        continue;
       }
 
-      if (imageData?.b64_json) {
-        console.log(`Figurinha gerada com key ${keyIdx + 1}`);
-        break;
+      try {
+        const response = await openaiClients[keyIdx].images.edit({
+          model: "gpt-image-2",
+          image: [fotoFile, modeloFile],
+          prompt,
+          size: "1024x1536",
+        });
+        const candidate = response.data?.[0]?.b64_json;
+        if (candidate) {
+          b64Result = candidate;
+          successKeyIdx = keyIdx;
+          console.log(`API ok — key ${keyIdx + 1}, tentativa ${attempt + 1} | API: ${ms(genStart)} | total: ${ms(t0)}`);
+        }
+      } catch (apiErr: unknown) {
+        const errMsg = apiErr instanceof Error ? apiErr.message : String(apiErr);
+        const status = (apiErr as { status?: number }).status ?? 0;
+        if (status === 401 || status === 403) {
+          deadKeys.add(keyIdx);
+          console.log(`Key ${keyIdx + 1} inválida (${status})`);
+        } else if (
+          status === 402 || status === 400 ||
+          errMsg.includes("billing") || errMsg.includes("hard_limit") ||
+          errMsg.includes("insufficient") || errMsg.includes("credit") || errMsg.includes("quota")
+        ) {
+          deadKeys.add(keyIdx);
+          console.log(`Key ${keyIdx + 1} sem cota (${status})`);
+        } else if (status === 429) {
+          console.log(`Key ${keyIdx + 1} rate-limited, aguardando 5s...`);
+          await new Promise(r => setTimeout(r, 5000));
+        } else {
+          console.log(`Key ${keyIdx + 1} tentativa ${attempt + 1} erro (${status}): ${errMsg.slice(0, 80)}`);
+          if (attempt > 0) await new Promise(r => setTimeout(r, 1500));
+        }
       }
-      console.log(`Key ${keyIdx + 1} esgotada, tentando próxima...`);
-    }
-    if (!imageData?.b64_json) {
-      return NextResponse.json({ error: "Falha na geração" }, { status: 422 });
+      attempt++;
     }
 
-    // Salvar figurinha no Vercel Blob
+    const generationMs = Date.now() - genStart;
+
+    if (!b64Result) {
+      return NextResponse.json({ error: "Fallo en la generación" }, { status: 422 });
+    }
+
     const stickerId = randomUUID();
-    const stickerBuffer = Buffer.from(imageData.b64_json, "base64");
-    const blob = await put(`figurinhas/${stickerId}.png`, stickerBuffer, {
-      access: "public",
-      contentType: "image/png",
-    });
+    const stickerBuffer = Buffer.from(b64Result, "base64");
 
-    // Criar versão com marca d'água pro preview/email
-    let previewBlobUrl = blob.url; // fallback: usar a original
-    try {
-      const resizedBuf = await sharp(stickerBuffer).resize(400).toBuffer();
-      const resMeta = await sharp(resizedBuf).metadata();
-      const w = resMeta.width || 400;
-      const h = resMeta.height || 600;
-      const watermarkSvg = Buffer.from(`
-      <svg width="${w}" height="${h}">
-        <defs>
-          <pattern id="wm" x="0" y="0" width="200" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
-            <text x="100" y="40" font-family="Arial" font-size="22" fill="rgba(255,255,255,0.45)" font-weight="900" text-anchor="middle">PREVIEW</text>
-            <text x="10" y="70" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.3)">minha-figurinha-copa2026</text>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#wm)" />
-      </svg>
-    `);
-      const previewBuffer = await sharp(resizedBuf)
-        .composite([{ input: watermarkSvg, blend: "over" }])
-        .jpeg({ quality: 60 })
-        .toBuffer();
-      const previewBlob = await put(`previews/${stickerId}.jpg`, previewBuffer, {
-        access: "public",
-        contentType: "image/jpeg",
-      });
-      previewBlobUrl = previewBlob.url;
-    } catch (wmErr) {
-      console.error("Erro ao criar preview com marca dagua:", wmErr);
+    const createPreview = async (): Promise<Buffer | null> => {
+      try {
+        const watermarkSvg = Buffer.from(`<svg width="400" height="600"><defs><pattern id="wm" x="0" y="0" width="200" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)"><text x="100" y="40" font-family="Arial" font-size="22" fill="rgba(255,255,255,0.45)" font-weight="900" text-anchor="middle">PREVIEW</text><text x="10" y="70" font-family="Arial, sans-serif" font-size="14" fill="rgba(255,255,255,0.3)">mi-figurita-copa2026</text></pattern></defs><rect width="100%" height="100%" fill="url(#wm)"/></svg>`);
+        return await sharp(stickerBuffer)
+          .resize(400)
+          .composite([{ input: watermarkSvg, blend: "over" }])
+          .jpeg({ quality: 60 })
+          .toBuffer();
+      } catch { return null; }
+    };
+
+    const tBlob = Date.now();
+    const mainBlobPromise = put(`figurinhas/${stickerId}.png`, stickerBuffer, { access: "public", contentType: "image/png" });
+    const previewBlobPromise = createPreview().then(buf =>
+      buf ? put(`previews/${stickerId}.jpg`, buf, { access: "public", contentType: "image/jpeg" }).catch(() => null) : null
+    );
+    const [blob, previewBlob] = await Promise.all([mainBlobPromise, previewBlobPromise]);
+    console.log(`blob+preview: ${ms(tBlob)}`);
+
+    const finalPreviewUrl = previewBlob?.url ?? blob.url;
+
+    if (rascunhoId) {
+      await sql`
+        UPDATE pedidos SET
+          sticker_id = ${stickerId}, sticker_url = ${blob.url}, preview_url = ${finalPreviewUrl},
+          status = 'pendente', api_key_used = ${successKeyIdx + 1}, generation_ms = ${generationMs},
+          peso_estimado = ${pesoSafe}, altura_estimada = ${alturaM}
+        WHERE id = ${rascunhoId}
+      `.catch(e => console.error("DB update rascunho:", e));
+    } else {
+      await sql`
+        INSERT INTO pedidos (nome, data_nascimento, clube, jogador_favorito, email, sticker_id, sticker_url, preview_url, status, api_key_used, generation_ms, peso_estimado, altura_estimada)
+        VALUES (${nomeSafe}, ${dataNascimento}, ${clubeSafe}, ${jogadorSafe}, ${emailSafe}, ${stickerId}, ${blob.url}, ${finalPreviewUrl}, 'pendente', ${successKeyIdx + 1}, ${generationMs}, ${pesoSafe}, ${alturaM})
+      `.catch(e => console.error("DB insert:", e));
     }
 
-    // Salvar pedido no banco
-    await sql`
-      INSERT INTO pedidos (nome, data_nascimento, clube, jogador_favorito, peso_estimado, altura_estimada, sticker_id, sticker_url, preview_url, email, status)
-      VALUES (${nomeSafe}, ${dataNascimento}, ${clubeSafe}, ${jogadorSafe}, ${null}, ${null}, ${stickerId}, ${blob.url}, ${previewBlobUrl}, ${emailSafe}, 'pendente')
-    `;
-
-    console.log(`Figurinha salva: ${stickerId}`);
+    console.log(`Figurita salva: ${stickerId} | TOTAL: ${ms(t0)}`);
     return NextResponse.json({
-      imageBase64: imageData.b64_json,
+      imageBase64: b64Result,
       mimeType: "image/png",
       stickerId,
     });
   } catch (error: unknown) {
-    console.error("Erro na geração:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "Erro na geração. Tente novamente." }, { status: 500 });
+    console.error("OUTER CATCH:", error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "Error en la generación. Intenta de nuevo." }, { status: 500 });
+  } finally {
+    keyInFlight.set(startIdx, Math.max(0, (keyInFlight.get(startIdx) ?? 1) - 1));
   }
 }

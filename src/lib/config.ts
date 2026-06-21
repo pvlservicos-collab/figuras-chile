@@ -10,12 +10,12 @@ export interface SiteConfig {
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
-  locale: "es-MX",
-  currency: "MXN",
-  price: "MX$63.99",
-  checkoutUrl: "https://folem.mycartpanda.com/checkout/211069931:1",
-  firstButtonText: "¡EMPEZAR!",
-  purchaseButtonText: "⚽ RECIBIR MI CROMO",
+  locale: "es-CL",
+  currency: "EUR",
+  price: "€2,99",
+  checkoutUrl: "https://eaglemedia.mycartpanda.com/checkout/210148860:1",
+  firstButtonText: "EMPEZAR",
+  purchaseButtonText: "RECIBIR MI FIGURITA",
 };
 
 let cached: SiteConfig | null = null;

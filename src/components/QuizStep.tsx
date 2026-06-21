@@ -8,10 +8,10 @@ export interface QuizData {
   email: string;
   clube: string;
   jogadorFavorito: string;
+  peso: string;
+  altura: string;
   foto: File | null;
 }
-
-// Tabela de crescimento — percentil 50 brasileiro
 
 interface QuizStepProps {
   step: number;
@@ -36,9 +36,8 @@ const clubes = [
   "Barcelona", "Real Madrid", "Atlético de Madrid", "Sevilla FC",
   "Manchester City", "Liverpool", "Arsenal", "Chelsea",
   "Bayern Munich", "Borussia Dortmund", "Juventus", "AC Milan", "Inter Milan",
-  "Paris Saint-Germain",
+  "Paris Saint-Germain", "Selección de Chile", "Otro",
 ];
-
 
 export default function QuizStep({ step, data, updateData, onNext, onBack, totalSteps }: QuizStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,8 +49,6 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
   const [showClubeList, setShowClubeList] = useState(false);
   const clubeRef = useRef<HTMLDivElement>(null);
 
-
-  // Data de nascimento — campos separados
   const [birthDay, setBirthDay] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
   const [birthYear, setBirthYear] = useState("");
@@ -86,7 +83,8 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
           const age = now.getFullYear() - birth.getFullYear();
           if (age < 0 || age > 120) newErrors.dataNascimento = "Fecha inválida";
         }
-        if (!data.email || !data.email.includes("@") || !data.email.includes(".")) newErrors.email = "Por favor ingresa un correo electrónico válido";
+        if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+          newErrors.email = "Por favor ingresa un correo electrónico válido";
         break;
       case 3:
         if (!data.clube || data.clube.trim().length < 2) newErrors.clube = "Escribe o selecciona un club";
@@ -126,15 +124,15 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
             {Math.round(progressPercent)}%
           </span>
         </div>
-        <div className="w-full h-3 bg-copa-white rounded-full overflow-hidden shadow-inner">
+        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
           <div className="h-full bg-copa-blue rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
       {/* Card container */}
-      <div className="w-full max-w-md bg-copa-white rounded-3xl shadow-2xl p-6 md:p-8 animate-slide-up">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 md:p-8 animate-slide-up">
 
-        {/* Step 1: Nome + Foto */}
+        {/* Step 1: Nombre + Foto */}
         {step === 1 && (
           <div className="flex flex-col gap-5">
             <div className="text-center">
@@ -186,10 +184,17 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
               <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoChange} className="hidden" />
               {errors.foto && <p className="text-red-500 text-sm mt-1">{errors.foto}</p>}
             </div>
+
+            <p className="text-center text-xs text-gray-400 mt-2" style={{ fontFamily: "var(--font-papernotes)" }}>
+              Al enviar aceptas nuestra{" "}
+              <span className="underline cursor-default hover:text-gray-600 transition-colors">
+                política de privacidad
+              </span>
+            </p>
           </div>
         )}
 
-        {/* Step 2: Data de Nascimento — Dia, Mês, Ano separados */}
+        {/* Step 2: Fecha de Nacimiento + Email */}
         {step === 2 && (
           <div className="flex flex-col gap-5">
             <div className="text-center">
@@ -267,11 +272,17 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
               <label className="block text-sm font-bold mb-1 text-copa-blue" style={{ fontFamily: "var(--font-titulo)" }}>
                 TU CORREO ELECTRÓNICO
               </label>
+              <p className="text-xs text-gray-500 mb-2" style={{ fontFamily: "var(--font-papernotes)" }}>
+                El correo que quedará guardado en tu figurita
+              </p>
               <input
                 type="email"
                 value={data.email}
-                onChange={(e) => updateData({ email: e.target.value })}
+                onChange={(e) => updateData({ email: e.target.value.trim() })}
                 placeholder="ejemplo@email.com"
+                maxLength={200}
+                autoComplete="email"
+                inputMode="email"
                 className="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-copa-blue focus:outline-none transition-colors placeholder:text-gray-400"
                 style={{ fontFamily: "var(--font-papernotes)" }}
               />
@@ -280,7 +291,7 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
           </div>
         )}
 
-        {/* Step 3: Clube */}
+        {/* Step 3: Club + Peso + Altura */}
         {step === 3 && (
           <div className="flex flex-col gap-5">
             <div className="text-center">
@@ -293,7 +304,39 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
               </p>
             </div>
 
-            {/* Clube */}
+            {/* Peso y Altura (opcionales) */}
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="block text-sm font-bold mb-1 text-copa-blue" style={{ fontFamily: "var(--font-titulo)" }}>
+                  PESO (kg)
+                </label>
+                <input
+                  type="number"
+                  value={data.peso}
+                  onChange={(e) => updateData({ peso: e.target.value })}
+                  placeholder="Ej: 70"
+                  min={1} max={300}
+                  className="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-copa-blue focus:outline-none transition-colors placeholder:text-gray-400"
+                  style={{ fontFamily: "var(--font-papernotes)" }}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-bold mb-1 text-copa-blue" style={{ fontFamily: "var(--font-titulo)" }}>
+                  ALTURA (cm)
+                </label>
+                <input
+                  type="number"
+                  value={data.altura}
+                  onChange={(e) => updateData({ altura: e.target.value })}
+                  placeholder="Ej: 175"
+                  min={1} max={300}
+                  className="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-copa-blue focus:outline-none transition-colors placeholder:text-gray-400"
+                  style={{ fontFamily: "var(--font-papernotes)" }}
+                />
+              </div>
+            </div>
+
+            {/* Club */}
             <div ref={clubeRef} className="relative">
               <label className="block text-sm font-bold mb-1 text-copa-blue" style={{ fontFamily: "var(--font-titulo)" }}>
                 CLUB FAVORITO
@@ -313,7 +356,7 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
                   {filteredClubes.length > 0 ? filteredClubes.slice(0, 8).map((c) => (
                     <button key={c} type="button"
                       onClick={() => { setClubeQuery(c); updateData({ clube: c }); setShowClubeList(false); }}
-                      className={`w-full text-left px-4 py-3 hover:bg-copa-yellow/30 transition-colors cursor-pointer ${data.clube === c ? "bg-copa-blue/10 font-bold text-copa-blue" : "text-gray-700"} first:rounded-t-xl last:rounded-b-xl`}
+                      className={`w-full text-left px-4 py-3 hover:bg-copa-blue/10 transition-colors cursor-pointer ${data.clube === c ? "bg-copa-blue/10 font-bold text-copa-blue" : "text-gray-700"} first:rounded-t-xl last:rounded-b-xl`}
                       style={{ fontFamily: "var(--font-papernotes)" }}
                     >{c}</button>
                   )) : (
@@ -326,7 +369,6 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
               )}
               {errors.clube && <p className="text-red-500 text-sm mt-1">{errors.clube}</p>}
             </div>
-
           </div>
         )}
 
@@ -334,15 +376,19 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
         <div className="flex gap-3 mt-8">
           {step > 1 && (
             <button onClick={onBack}
-              className="flex-1 px-6 py-4 rounded-xl border-2 border-copa-blue text-copa-blue font-bold hover:bg-copa-blue hover:text-copa-white transition-all duration-200 cursor-pointer tracking-[0.15em]"
+              className="flex-1 px-6 py-4 rounded-xl border-2 border-copa-blue text-copa-blue font-bold hover:bg-copa-blue hover:text-white transition-all duration-200 cursor-pointer tracking-[0.15em]"
               style={{ fontFamily: "var(--font-titulo)" }}
             >VOLVER</button>
           )}
           <button onClick={handleNext}
-            className="flex-1 bg-copa-blue text-copa-white font-bold text-lg px-6 py-4 rounded-xl shadow-lg hover:bg-copa-blue-hover active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.15em]"
-            style={{ fontFamily: "var(--font-titulo)" }}
+            className="flex-1 text-white font-bold text-lg px-6 py-4 rounded-xl shadow-lg active:scale-95 transition-all duration-200 cursor-pointer tracking-[0.15em]"
+            style={{
+              fontFamily: "var(--font-titulo)",
+              background: "linear-gradient(135deg, #00DD55 0%, #00BB33 100%)",
+              boxShadow: "0 4px 16px rgba(0,153,51,0.4)",
+            }}
           >
-            {step === totalSteps ? "CREAR MI FIGURITA ⚽" : "SIGUIENTE →"}
+            {step === totalSteps ? "GENERAR FIGURITA ⚽" : "SIGUIENTE →"}
           </button>
         </div>
       </div>
@@ -350,7 +396,7 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
       {/* Step indicators */}
       <div className="flex gap-2 mt-6">
         {Array.from({ length: totalSteps }, (_, i) => (
-          <div key={i} className={`w-3 h-3 rounded-full transition-all duration-300 ${i + 1 <= step ? "bg-copa-blue scale-110" : "bg-copa-white opacity-50"}`} />
+          <div key={i} className={`w-3 h-3 rounded-full transition-all duration-300 ${i + 1 <= step ? "bg-copa-blue scale-110" : "bg-gray-300 opacity-50"}`} />
         ))}
       </div>
     </section>
