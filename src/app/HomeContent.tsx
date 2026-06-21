@@ -153,7 +153,7 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
     if (generatingRef.current && attempt === 0) return;
     if (attempt === 0) generatingRef.current = true;
     const MAX_RETRIES = 4;
-    if (attempt > MAX_RETRIES) { generatingRef.current = false; return; }
+    if (attempt > MAX_RETRIES) { generatingRef.current = false; setStickerUrl(""); setAppStep("result"); return; }
 
     const current = dataRef.current;
     try {
@@ -304,7 +304,8 @@ export default function HomeContent({ checkoutUrl, price, firstButtonText, purch
             sessionStorage.removeItem("figurinha_sticker_id");
             setGenStartTime(Date.now());
             setAppStep("loading-generate");
-            generateFigurinha(errorTimestamp || undefined, retryCount);
+            setRetryCount(0);
+            generateFigurinha(errorTimestamp || undefined);
           }}
         />
       )}

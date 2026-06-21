@@ -57,6 +57,19 @@ export default function QuizStep({ step, data, updateData, onNext, onBack, total
     ? clubes.filter((c) => c.toLowerCase().includes(clubeQuery.toLowerCase()))
     : clubes;
 
+  // Sync date dropdowns from parent data when the component mounts or step changes to 2
+  useEffect(() => {
+    if (step === 2 && data.dataNascimento) {
+      const [y, m, d] = data.dataNascimento.split("-");
+      if (y && m && d) {
+        setBirthYear(y);
+        setBirthMonth(m);
+        setBirthDay(d);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (clubeRef.current && !clubeRef.current.contains(e.target as Node)) setShowClubeList(false);
