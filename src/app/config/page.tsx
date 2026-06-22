@@ -125,7 +125,7 @@ export default function ConfigPage() {
             value={name}
             onChange={e => { setName(e.target.value); setAuthError(""); }}
             onKeyDown={e => e.key === "Enter" && !authLoading && handleLogin(e as unknown as React.FormEvent)}
-            placeholder="pedro / vini / tel"
+            placeholder=""
             autoFocus
             className="w-full px-4 py-3 rounded-xl bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none mb-4 text-center"
           />
