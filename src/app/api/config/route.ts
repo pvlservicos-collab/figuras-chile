@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConfig, saveConfig } from "@/lib/config";
-
-function validateAdminRequest(req: NextRequest): boolean {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  const adminToken = process.env.ADMIN_TOKEN;
-  return !!(adminToken && token === adminToken);
-}
+import { validateAdminRequest } from "@/lib/adminAuth";
 
 export async function GET(req: NextRequest) {
   if (!validateAdminRequest(req)) {

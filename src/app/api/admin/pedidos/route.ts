@@ -1,81 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { validateAdminRequest } from "@/lib/adminAuth";
 
 export async function GET(req: NextRequest) {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken || token !== adminToken) {
+  if (!validateAdminRequest(req)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   const sql = getDb();
   const { searchParams } = new URL(req.url);
   const offset = Number(searchParams.get("offset") || "0");
-  const limit = Number(searchParams.get("limit") || "100");
-  const search = searchParams.get("search") || "";
+  const limit = Math.min(Number(searchParams.get("limit") || "24"), 200);
+  const nome = searchParams.get("nome")?.trim() || "";
+  const fone = searchParams.get("fone")?.trim() || "";
+  const date = searchParams.get("date") || "all";
 
-  let pedidos;
-  let totalFiltered;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
 
-  if (search.trim()) {
-    const searchPattern = `%${search.trim()}%`;
-    pedidos = await sql`
-      SELECT p.id, p.nome, p.clube, p.jogador_favorito, p.sticker_url, p.sticker_id, p.status, p.email, p.telefone, p.pdf_url,
-        COALESCE(p.whats_enviado, FALSE) as whats_enviado,
-        CASE WHEN p.status IN ('pago', 'entregue', 'recuperado') AND COALESCE(p.whats_enviado, FALSE) = FALSE AND EXISTS (
-          SELECT 1 FROM pedido_items pi
-          WHERE pi.email = p.email AND pi.item_type = 'order_bump'
-          AND pi.product_name LIKE '%What%'
-        ) THEN TRUE ELSE FALSE END as whats_pendente,
-        p.created_at, p.paid_at, p.delivered_at
-      FROM pedidos p
-      WHERE p.nome ILIKE ${searchPattern} OR p.email ILIKE ${searchPattern} OR p.clube ILIKE ${searchPattern} OR p.telefone ILIKE ${searchPattern}
-      ORDER BY p.id DESC LIMIT ${limit} OFFSET ${offset}
-    `;
-    const countResult = await sql`
-      SELECT COUNT(*)::int as total FROM pedidos
-      WHERE nome ILIKE ${searchPattern} OR email ILIKE ${searchPattern} OR clube ILIKE ${searchPattern} OR telefone ILIKE ${searchPattern}
-    `;
-    totalFiltered = countResult[0].total;
-  } else {
-    pedidos = await sql`
-      SELECT p.id, p.nome, p.clube, p.jogador_favorito, p.sticker_url, p.sticker_id, p.status, p.email, p.telefone, p.pdf_url,
-        COALESCE(p.whats_enviado, FALSE) as whats_enviado,
-        CASE WHEN p.status IN ('pago', 'entregue', 'recuperado') AND COALESCE(p.whats_enviado, FALSE) = FALSE AND EXISTS (
-          SELECT 1 FROM pedido_items pi
-          WHERE pi.email = p.email AND pi.item_type = 'order_bump'
-          AND pi.product_name LIKE '%What%'
-        ) THEN TRUE ELSE FALSE END as whats_pendente,
-        p.created_at, p.paid_at, p.delivered_at
-      FROM pedidos p ORDER BY p.id DESC LIMIT ${limit} OFFSET ${offset}
-    `;
-    const countResult = await sql`SELECT COUNT(*)::int as total FROM pedidos`;
-    totalFiltered = countResult[0].total;
-  }
+  const nomeFilter = nome ? sql`AND p.nome ILIKE ${"%" + nome + "%"}` : sql``;
+  const foneFilter = fone
+    ? sql`AND (p.telefone ILIKE ${"%" + fone + "%"} OR p.email ILIKE ${"%" + fone + "%"})`
+    : sql``;
+  const dateFilter =
+    date === "today"
+      ? sql`AND p.created_at >= ${today}`
+      : date === "yesterday"
+      ? sql`AND p.created_at >= ${yesterday} AND p.created_at < ${today}`
+      : sql``;
 
-  const statsResult = await sql`
+  const pedidos = await sql`
     SELECT
-      COUNT(*)::int AS total,
-      COUNT(*) FILTER (WHERE status = 'pendente')::int AS pendentes,
-      COUNT(*) FILTER (WHERE status IN ('pago', 'entregue'))::int AS pagos,
-      COUNT(*) FILTER (WHERE status = 'entregue')::int AS entregues
-    FROM pedidos
+      p.id, p.nome, p.clube, p.telefone, p.sticker_url, p.preview_url,
+      p.sticker_id, p.status, p.created_at,
+      (SELECT SUM(pi.price) FROM pedido_items pi WHERE pi.email = p.email AND pi.status != 'pendente') AS price_paid
+    FROM pedidos p
+    WHERE 1=1 ${nomeFilter} ${foneFilter} ${dateFilter}
+    ORDER BY p.id DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `;
+
+  const countResult = await sql`
+    SELECT COUNT(*)::int AS total
+    FROM pedidos p
+    WHERE 1=1 ${nomeFilter} ${foneFilter} ${dateFilter}
   `;
 
   return NextResponse.json({
     pedidos,
-    stats: statsResult[0],
-    totalFiltered,
-    offset,
-    limit,
-    hasMore: offset + pedidos.length < totalFiltered,
+    totalFiltered: countResult[0].total,
   });
 }
 
 export async function DELETE(req: NextRequest) {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken || token !== adminToken) {
+  if (!validateAdminRequest(req)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
