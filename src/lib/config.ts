@@ -13,7 +13,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
   locale: "es-CL",
   currency: "EUR",
   price: "€2,99",
-  checkoutUrl: "https://folem.mycartpanda.com/checkout/211129887:1",
+  checkoutUrl: "https://buy.stripe.com/4gM9ATcFZbKxfAx1rV5Vu08",
   firstButtonText: "EMPEZAR",
   purchaseButtonText: "RECIBIR MI FIGURITA",
 };

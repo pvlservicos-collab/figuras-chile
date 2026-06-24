@@ -16,7 +16,7 @@ export default function ResultScreen({ stickerUrl, stickerId, onRetry, checkoutU
     sessionStorage.removeItem("figurinha_sticker_url");
     sessionStorage.removeItem("figurinha_sticker_id");
     try { localStorage.setItem("figurinha_sticker_id", stickerId); } catch { /* ignore */ }
-    const checkoutUrl = checkoutUrlProp || process.env.NEXT_PUBLIC_CHECKOUT_URL || "https://eaglemedia.mycartpanda.com/checkout/210148860:1";
+    const checkoutUrl = checkoutUrlProp || process.env.NEXT_PUBLIC_CHECKOUT_URL || "https://buy.stripe.com/4gM9ATcFZbKxfAx1rV5Vu08";
 
     // Capturar UTMs da URL original e cookies pra passar pro checkout
     const params = new URLSearchParams(window.location.search);
